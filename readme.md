@@ -1,127 +1,80 @@
-# cyber-security-llm-agents
-A collection of agents that use Large Language Models (LLMs) to perform tasks common on our day to day jobs in cyber security.
-Built on top of [AutoGen](https://microsoft.github.io/autogen/).
+# AI CyberShield – AI-Powered Security Log Analyzer
 
-Released as part of our talks at RSAC2024:  
-[From Chatbot to Destroyer of Endpoints: Can ChatGPT Automate EDR Bypasses?](https://www.rsaconference.com/USA/agenda/session/From%20Chatbot%20to%20Destroyer%20of%20Endpoints%20Can%20ChatGPT%20Automate%20EDR%20Bypasses)  
-[The Always-On Purple Team: An Automated CI/CD for Detection Engineering](https://www.rsaconference.com/USA/agenda/session/The%20Always-On%20Purple%20Team%20An%20Automated%20CICD%20for%20Detection%20Engineering)
+## Overview
 
-<figure align="center">
-  <img src="documentation/videos/detect_edr.gif" alt="Detecting EDR"/>
-   <figcaption style="text-align: center;"><i>Detecting the EDR running on a Windows system based on live data extracted from https://github.com/tsale/EDR-Telemetry.</i></figcaption>
-</figure>
+AI CyberShield is a Python-based cybersecurity project that analyzes uploaded security log files and identifies potentially suspicious activities. It provides a simple dashboard to help users understand security events.
 
-## Key Features
+The application uses Streamlit for its dashboard and a locally running Llama 3.2 model through Ollama to explain potential threats and suggest defensive actions.
 
-- **Modular Design**: Our framework is composed of individual agents and tasks that can be combined and customized to fit your specific security needs. This modular approach ensures flexibility and scalability, allowing you to adapt to the ever-evolving landscape of cyber threats.
-- **Automation**: With Cyber-Security-LLM-Agents, you can automate repetitive and complex tasks, freeing up valuable time for your security team to focus on strategic analysis and decision-making.
-- **Batteries Included**: We provide a comprehensive set of pre-defined workflows, agents, and tasks that are ready to use out-of-the-box. This enables you to jumpstart your cyber security automation with proven practices and techniques.
+## Features
 
-## Getting Started
+- **Security Log Upload:** Upload `.txt`, `.log`, and `.csv` files for analysis.
+- **Suspicious Activity Detection:** Identify potentially suspicious patterns, including repeated failed login attempts and unauthorized access messages.
+- **Local AI Analysis:** Analyze security logs using a locally running Llama 3.2 model.
+- **Threat Analysis:** Display possible security concerns, evidence, severity, and recommended defensive actions.
+- **Downloadable Report:** Download a text report containing detected log patterns and summary information.
+- **Interactive Dashboard:** View security analysis through a Streamlit interface.
 
-> [!CAUTION]
-> Running LLM-generated source code and commands poses a security risk to your host environment! Be careful and only run this in a virtual or test environment.
+## Technologies Used
 
-### Step 1 - Install  requirements
+- Python
+- Streamlit
+- Pandas
+- Plotly
+- Ollama
+- Llama 3.2 (3B)
 
-```
-pip install -r requirements
-```
+## Requirements
 
-### Step 2 - Configure OpenAI API Information
+- Python installed on your computer
+- Ollama installed and running
+- The `llama3.2:3b` model downloaded
 
-```
-cp .env_template .env
-```
-Then add your LLM API information and other parameters to the ``.env``.
+## Installation and Setup
 
+### 1. Install Python dependencies
 
-### Step 3 - Start HTTP and FTP server (Optional)
+Open a terminal in the project folder and run:
 
-Only required if you want to host a simple HTTP and FTP server to interact with using your agents.
-This is useful for demos, where you might want to showcase exfiltration or downloading of payloads onto an implant.
-
-```
-python run_servers.py
+```bash
+python -m pip install streamlit pandas plotly requests
 ```
 
+### 2. Set up the local AI model
 
-### Step 3 - Hello, Agents
+Install Ollama, then download the model:
 
-Run a very basic scenario to confirm everything is configured correctly.
-
-```
-python run_agents.py HELLO_AGENTS
-```
-
-The output should show the agent doing its best at being funny.
-If you see the below (or an even better) joke, you are all set!
-
-```
-python run_agents.py HELLO_AGENTS
-
-********************************************************************************
-Starting a new chat....
-
-********************************************************************************
-task_coordinator_agent (to text_analyst_agent):
-
-Tell me a cyber security joke
-
---------------------------------------------------------------------------------
-text_analyst_agent (to task_coordinator_agent):
-
-Why was the computer cold? It left its Windows open. 
-
-TERMINATE
+```bash
+ollama pull llama3.2:3b
 ```
 
-## Building Scenarios
+Make sure Ollama is running before using AI analysis.
 
-All scenarios are defined in ``actions/agent_actions.py``. You can use that file to modify and create new scenarios. Once a new scenario has been added to the dictionary, you can run it:
+### 3. Start the dashboard
 
-```
-python run_agents.py <scenario-name>
-```
+Run the following command from the project root:
 
-
-## Development
-
-
-### Jupyter notebooks
-
-You can launch jupyter notebooks on your network interface by choice. This allows you run the notebooks within a VM and expose them to different system - interesting for demos!
-
-```
-./run_notebooks.sh ens37
+```bash
+python -m streamlit run dashboard/app.py
 ```
 
-### Static analysis and code quality
+The dashboard should open in your web browser.
 
-We ignore E501 (line too long) as this triggers on long agent and action strings.
-We ignore W503 (line break before binary operator) and we are opinionated about this being OK.
+## How It Works
 
-```
-flake8 --exclude=.venv --ignore=E501,W503 .
-```
+1. Upload a supported security log file.
+2. The application checks log entries for potentially suspicious patterns.
+3. Use the AI analysis features to request explanations and defensive recommendations.
+4. Review the results and download the security report.
 
-## Conributions
+## Project Limitations
 
-We welcome contributions from the community! 
+This project is a learning and demonstration prototype. It analyzes uploaded log files and does not currently provide continuous real-time system or network monitoring. Keyword matches and AI-generated assessments are indicators for review, not proof of a confirmed cyberattack.
 
-If you have ideas for new agents, tasks, or improvements, please feel free to fork our repository, make your changes, and submit a pull request.
+## Acknowledgment
 
-## License
-
-Released under the GNU GENERAL PUBLIC LICENSE v3 (GPL-3).
+This project was adapted from the [NVISOsecurity Cyber Security LLM Agents repository](https://github.com/NVISOsecurity/cyber-security-llm-agents). The dashboard and local AI analysis workflow were developed as part of this adaptation.
 
 ## Disclaimer
 
-Please note that the software contained in this repository is in its early stages of development. As such, it is considered to be an early release and may contain components that are not fully stable, potentially leading to breaking changes. Users should exercise caution when using this software. 
-
-We are committed to improving and extending the software's capabilities over the coming months, and we welcome any feedback that can help us enhance its performance and functionality.
-
-## Acknowledgements
-We are grateful for the support received by 
-[INNOVIRIS](https://innoviris.brussels/) and the Brussels region in 
-funding our Research & Development activities. 
+This tool is intended for educational and defensive cybersecurity purposes. Review analysis results before taking action, as automated detections may be inaccurate.
