@@ -166,3 +166,5 @@ llm_working_folder/
 private/
 OAI_CONFIG.json
 logs.db
+.env.*
+!.env.example

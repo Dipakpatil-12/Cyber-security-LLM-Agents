@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from ai_analyzer import analyze_security_logs
 
 st.set_page_config(
     page_title="AI CyberShield",
@@ -27,9 +28,9 @@ h1, h2, h3, p {
 
 st.title("🛡️ AI CyberShield")
 st.caption("Cybersecurity Threat Detection & Analytics Dashboard")
-
 st.success("● Dashboard Online — Demo Mode")
 
+# Security Overview
 st.markdown("## Security Overview")
 
 c1, c2, c3, c4 = st.columns(4)
@@ -39,8 +40,11 @@ c2.metric("Threats Detected", "27", "+5")
 c3.metric("Critical Alerts", "3", "Needs review")
 c4.metric("System Health", "98.4%", "Healthy")
 
+st.caption("Demo metrics only — not connected to live security systems.")
+
 st.divider()
 
+# Security Charts
 left, right = st.columns([2, 1])
 
 with left:
@@ -64,6 +68,7 @@ with right:
 
 st.divider()
 
+# Recent Security Events
 st.subheader("📋 Recent Security Events")
 
 data = pd.DataFrame([
@@ -79,13 +84,22 @@ severity = st.selectbox(
     ["ALL", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
 )
 
-if severity != "ALL":
-    data = data[data["Severity"] == severity]
+filtered_data = data.copy()
 
-st.dataframe(data, use_container_width=True, hide_index=True)
+if severity != "ALL":
+    filtered_data = filtered_data[
+        filtered_data["Severity"] == severity
+    ]
+
+st.dataframe(
+    filtered_data,
+    use_container_width=True,
+    hide_index=True
+)
 
 st.divider()
 
+# Login Activity Rule
 st.subheader("🔍 Analyze Login Activity")
 
 attempts = st.number_input(
@@ -98,47 +112,156 @@ attempts = st.number_input(
 if st.button("Analyze Activity"):
     if attempts >= 5:
         st.error("⚠️ Suspicious activity detected!")
-        st.write("Recommendation: Investigate the account and review its login history.")
+        st.write(
+            "Recommendation: Investigate the account "
+            "and review its login history."
+        )
     else:
-        st.success("No suspicious activity detected by this demo rule.")
-
-st.caption("Educational demo using sample data. Not connected to live security systems.")
+        st.success(
+            "No suspicious activity detected by this demo rule."
+        )
 
 st.divider()
-st.header("📂 Upload Security Logs")
+
+# Security Log Analyzer
+st.header("🛡️ Security Log Analyzer")
+
+st.write(
+    "Upload a security log file to analyze suspicious activities."
+)
 
 uploaded_file = st.file_uploader(
-    "Upload a security log file",
-    type=["txt", "log", "csv"]
+    "Upload Security Log File",
+    type=["txt", "log", "csv"],
+    key="security_log_upload"
 )
 
 if uploaded_file is not None:
-    content = uploaded_file.getvalue().decode("utf-8", errors="replace")
-
-    st.subheader("Log Preview")
-    st.text_area("Uploaded Log Content", content, height=200)
-
-    if st.button("Analyze Security Logs"):
-        lines = content.splitlines()
-
-        failed = sum(
-            1 for line in lines
-            if "failed" in line.lower() or "failure" in line.lower()
+    try:
+        log_content = uploaded_file.getvalue().decode(
+            "utf-8", errors="replace"
         )
 
-        suspicious = sum(
-            1 for line in lines
-            if "suspicious" in line.lower()
-            or "unauthorized" in line.lower()
+        lines = log_content.splitlines()
+
+        st.subheader("📄 Log Preview")
+        st.text_area(
+            "Uploaded Log Content",
+            log_content,
+            height=200
         )
 
-        st.metric("Failed Login Events", failed)
-        st.metric("Suspicious Log Entries", suspicious)
+        # Rule-based Detection
+        failed_logins = [
+            line for line in lines
+            if "failed" in line.lower()
+            or "failure" in line.lower()
+        ]
 
-        if failed >= 5 or suspicious > 0:
-            st.warning(
-                "Potentially suspicious activity found. "
-                "Review the original logs before taking action."
+        suspicious_events = [
+            line for line in lines
+            if any(
+                word in line.lower()
+                for word in [
+                    "unauthorized",
+                    "suspicious",
+                    "attack"
+                ]
             )
+        ]
+
+        st.subheader("📊 Security Analysis Results")
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Total Log Entries", len(lines))
+        col2.metric("Failed Login Matches", len(failed_logins))
+        col3.metric(
+            "Suspicious Keyword Matches",
+            len(suspicious_events)
+        )
+
+        if failed_logins or suspicious_events:
+            st.warning(
+                "Potentially suspicious log entries found. "
+                "Review the evidence before taking action."
+            )
+
+            if failed_logins:
+                with st.expander("View Failed Login Events"):
+                    for event in failed_logins[:50]:
+                        st.text(event)
+
+            if suspicious_events:
+                with st.expander("View Suspicious Events"):
+                    for event in suspicious_events[:50]:
+                        st.text(event)
         else:
-            st.success("No matching suspicious patterns found.")
+            st.success(
+                "No matches for the configured security keywords."
+            )
+
+        # AI Log Analysis
+        st.divider()
+        st.subheader("🤖 AI Security Analysis")
+
+        if st.button("Analyze Logs with AI"):
+            with st.spinner("AI is analyzing the logs..."):
+                result = analyze_security_logs(log_content)
+
+            st.write(result)
+
+        # AI Threat Detection
+        if st.button("🛡️ Detect Security Threats"):
+            threat_prompt = (
+                "Analyze these security logs. Identify possible "
+                "suspicious IPs, repeated failed logins, unauthorized "
+                "access attempts, and potential security threats. "
+                "For each finding, explain the evidence, possible "
+                "severity, and recommended defensive actions. "
+                "Do not claim a confirmed attack without sufficient "
+                "evidence.\n\n"
+                + log_content[:12000]
+            )
+
+            with st.spinner("Checking for potential threats..."):
+                result = analyze_security_logs(threat_prompt)
+
+            st.subheader("🚨 Threat Detection Report")
+            st.write(result)
+
+        # Download Report
+        report = [
+            "AI CyberShield - Security Analysis Report",
+            "=" * 45,
+            f"Total log entries: {len(lines)}",
+            f"Failed login matches: {len(failed_logins)}",
+            f"Suspicious keyword matches: {len(suspicious_events)}",
+            "",
+            "Failed Login Events:",
+            *failed_logins[:50],
+            "",
+            "Suspicious Events:",
+            *suspicious_events[:50],
+            "",
+            "Note: Keyword matches do not confirm a cyberattack."
+        ]
+
+        st.download_button(
+            label="📥 Download Security Report",
+            data="\n".join(report),
+            file_name="cybershield_report.txt",
+            mime="text/plain"
+        )
+
+        st.caption(
+            "This dashboard analyzes uploaded logs using keyword "
+            "matching and optional AI analysis. It does not provide "
+            "continuous live monitoring."
+        )
+
+    except Exception as error:
+        st.error(f"Unable to analyze the file: {error}")
+
+else:
+    st.info("Upload a .txt, .log, or .csv file to get started.")
