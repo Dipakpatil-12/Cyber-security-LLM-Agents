@@ -103,3 +103,42 @@ if st.button("Analyze Activity"):
         st.success("No suspicious activity detected by this demo rule.")
 
 st.caption("Educational demo using sample data. Not connected to live security systems.")
+
+st.divider()
+st.header("📂 Upload Security Logs")
+
+uploaded_file = st.file_uploader(
+    "Upload a security log file",
+    type=["txt", "log", "csv"]
+)
+
+if uploaded_file is not None:
+    content = uploaded_file.getvalue().decode("utf-8", errors="replace")
+
+    st.subheader("Log Preview")
+    st.text_area("Uploaded Log Content", content, height=200)
+
+    if st.button("Analyze Security Logs"):
+        lines = content.splitlines()
+
+        failed = sum(
+            1 for line in lines
+            if "failed" in line.lower() or "failure" in line.lower()
+        )
+
+        suspicious = sum(
+            1 for line in lines
+            if "suspicious" in line.lower()
+            or "unauthorized" in line.lower()
+        )
+
+        st.metric("Failed Login Events", failed)
+        st.metric("Suspicious Log Entries", suspicious)
+
+        if failed >= 5 or suspicious > 0:
+            st.warning(
+                "Potentially suspicious activity found. "
+                "Review the original logs before taking action."
+            )
+        else:
+            st.success("No matching suspicious patterns found.")
